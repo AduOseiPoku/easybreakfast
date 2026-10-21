@@ -1,7 +1,10 @@
+import logging
 from decimal import Decimal
 from typing import List, Optional, Dict, Any
 from django.db.models import QuerySet
 from .models import Recipe, DietaryTag
+
+logger = logging.getLogger('recommender.services')
 
 
 class RecommendationResult:
@@ -80,6 +83,11 @@ class BreakfastRecommender:
         if servings < 1:
             servings = 1
 
+        logger.info(
+            "Recommendation request: budget=GH₵%.2f, time=%sm, servings=%d, craving=%s, tags=%s, tradition=%s",
+            budget_ghs, max_time_minutes, servings, flavor_preference, dietary_slugs, tradition_type
+        )
+
         queryset = Recipe.objects.filter(is_active=True).prefetch_related(
             'dietary_tags',
             'ingredient_groups__ingredients',
@@ -96,6 +104,7 @@ class BreakfastRecommender:
 
         if not recipes:
             # If dietary tag filtered out everything, fetch all active recipes for fallback
+            logger.warning("Dietary filters %s matched 0 recipes; falling back to full catalog", dietary_slugs)
             recipes = list(Recipe.objects.filter(is_active=True).prefetch_related('dietary_tags'))
 
         # Check affordability
@@ -111,6 +120,11 @@ class BreakfastRecommender:
             closest_recipe = recipes[0]
             closest_cost = closest_recipe.calculate_total_cost(servings)
             gap = closest_cost - budget_ghs
+
+            logger.warning(
+                "Low-budget fallback triggered: budget GH₵%.2f (servings=%d) is below cheapest meal '%s' at GH₵%.2f (gap: GH₵%.2f)",
+                budget_ghs, servings, closest_recipe.title, closest_cost, gap
+            )
 
             reason = (
                 f"Your budget of GH₵ {budget_ghs:.2f} is slightly under our most affordable breakfast, "
@@ -170,6 +184,11 @@ class BreakfastRecommender:
 
         top_match = scored_candidates[0]
         alternates = scored_candidates[1:4]
+
+        logger.info(
+            "Top match selected: '%s' (Score: %.1f, Cost: GH₵%.2f, Surplus: GH₵%.2f) from %d candidates",
+            top_match['recipe'].title, top_match['score'], top_match['cost_ghs'], top_match['surplus_ghs'], len(scored_candidates)
+        )
 
         return RecommendationResult(
             top_recipe=top_match['recipe'],

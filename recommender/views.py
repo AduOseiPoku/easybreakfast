@@ -1,8 +1,11 @@
+import logging
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, Http404
 from .models import Recipe, DietaryTag
 from .services import BreakfastRecommender
+
+logger = logging.getLogger('recommender.views')
 
 
 def home_view(request: HttpRequest) -> HttpResponse:
@@ -31,20 +34,24 @@ def recommend_view(request: HttpRequest) -> HttpResponse:
     try:
         budget_ghs = Decimal(raw_budget)
         if budget_ghs <= 0:
+            logger.warning("Non-positive budget '%s' submitted (IP: %s). Defaulting to 40.00", raw_budget, request.META.get('REMOTE_ADDR'))
             budget_ghs = Decimal('40.00')
     except (InvalidOperation, ValueError, TypeError):
+        logger.warning("Malformed budget string '%s' submitted (IP: %s). Defaulting to 40.00", raw_budget, request.META.get('REMOTE_ADDR'))
         budget_ghs = Decimal('40.00')
 
     raw_time = data.get('max_time_minutes', '').strip()
     try:
         max_time_minutes = int(raw_time) if raw_time and int(raw_time) > 0 else None
     except ValueError:
+        logger.warning("Malformed max_time_minutes '%s' submitted. Defaulting to None", raw_time)
         max_time_minutes = None
 
     raw_servings = data.get('servings', '1').strip()
     try:
         servings = int(raw_servings) if raw_servings and int(raw_servings) > 0 else 1
     except ValueError:
+        logger.warning("Malformed servings '%s' submitted. Defaulting to 1", raw_servings)
         servings = 1
 
     flavor_preference = data.get('flavor_preference', 'ALL').strip()
@@ -84,15 +91,15 @@ def recommend_view(request: HttpRequest) -> HttpResponse:
 
 def recipe_detail_view(request: HttpRequest, slug: str) -> HttpResponse:
     """Detailed view for a single Ghanaian breakfast recipe with steps & ingredient checklist."""
-    recipe = get_object_or_404(
-        Recipe.objects.prefetch_related(
+    try:
+        recipe = Recipe.objects.prefetch_related(
             'dietary_tags',
             'ingredient_groups__ingredients',
             'steps'
-        ),
-        slug=slug,
-        is_active=True
-    )
+        ).get(slug=slug, is_active=True)
+    except Recipe.DoesNotExist:
+        logger.warning("Recipe not found or inactive for slug: '%s' (IP: %s)", slug, request.META.get('REMOTE_ADDR'))
+        raise Http404(f"Recipe with slug '{slug}' does not exist.")
     
     # Servings multiplier (defaults to default_servings or user param)
     servings_param = request.GET.get('servings')
