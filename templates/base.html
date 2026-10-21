@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-stone-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Easy Eats — Ghanaian Breakfast Recommender{% endblock %}</title>
+    <!-- HTMX for reactive, dynamic web updates without full page reload -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Tailwind CSS CDN with custom typography and orange palette -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c', // Primary Ghanaian Sunset Orange
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        serif: ['Newsreader', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/easyeats_brand.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif-title { font-family: 'Newsreader', Georgia, serif; }
+        /* Custom minimalist styling */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-full flex flex-col text-stone-900 bg-stone-50 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    {% if not request.GET.webview and not request.GET.embed %}
+    <!-- Top Minimalist Navigation Header -->
+    <header class="border-b border-stone-200/80 bg-white/95 backdrop-blur sticky top-0 z-40 transition-all no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo & Wordmark -->
+            <a href="{% url 'recommender:home' %}" class="flex items-center gap-2.5 group" title="easyEats">
+                <img src="{% static 'images/easyeats_brand.png' %}" alt="easyEats" class="h-10 w-10 rounded-xl object-contain shadow-xs border border-brand-100 group-hover:scale-105 transition duration-200">
+                <div class="flex flex-col">
+                    <span class="font-bold text-stone-900 text-lg tracking-tight group-hover:text-brand-600 transition leading-none">
+                        easyEats
+                    </span>
+                    <span class="text-[10px] text-stone-500 tracking-wider uppercase font-medium mt-0.5">
+                        Ghanaian Breakfast
+                    </span>
+                </div>
+            </a>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not request.GET.webview and not request.GET.embed %}
+    <!-- Minimalist Footer -->
+    <footer class="border-t border-stone-200 bg-white mt-16 py-8 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-600">
+            <div class="flex items-center gap-2">
+                <span class="font-semibold text-stone-700">easyEats</span>
+                <span>•</span>
+                <span>Inspired by Chef Eric Adjepong's <em>Ghana to the World</em></span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-mono text-[11px]">
+                    Currency: Ghana Cedis (GH₵)
+                </span>
+                <span>•</span>
+                <a href="/admin/" class="hover:text-brand-600 transition">Manage Recipes</a>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: easybreakfast_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-breakfast_db}
+      POSTGRES_USER: ${POSTGRES_USER:-breakfast_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-breakfast_pass}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-breakfast_user} -d ${POSTGRES_DB:-breakfast_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: easybreakfast_web
+    restart: unless-stopped
+    command: gunicorn easybreakfast.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-breakfast_user}:${POSTGRES_PASSWORD:-breakfast_pass}@db:5432/${POSTGRES_DB:-breakfast_db}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

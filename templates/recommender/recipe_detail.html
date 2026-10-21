@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ recipe.title }} — Ghanaian Breakfast Recipe — Easy Eats{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <!-- Top Navigation Breadcrumb -->
+    <div class="mb-6">
+        <a href="{% url 'recommender:home' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-brand-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Back to Breakfast Recommender
+        </a>
+    </div>
+
+    <!-- Header Section with Optional Hero Photography -->
+    <div class="bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-xs mb-8">
+        {% if recipe.hero_image_url %}
+        <div class="w-full h-56 sm:h-72 lg:h-80 overflow-hidden relative bg-stone-900">
+            <img src="{{ recipe.hero_image_url }}" alt="{{ recipe.title }}" class="w-full h-full object-cover opacity-90">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute bottom-6 left-6 right-6 text-white">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-600 text-white inline-block mb-2">
+                    {{ recipe.get_tradition_type_display }}
+                </span>
+                <h1 class="font-serif-title text-3xl sm:text-5xl font-bold leading-tight">
+                    {{ recipe.title }}
+                </h1>
+                {% if recipe.twi_name %}
+                <span class="text-sm font-mono tracking-widest text-brand-300 block mt-1">
+                    {{ recipe.twi_name }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="p-4 sm:p-8 space-y-4 sm:space-y-6">
+            {% if not recipe.hero_image_url %}
+            <!-- Badges: Snugger gap & tighter mobile typography -->
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200/60">
+                    {{ recipe.get_tradition_type_display }}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-medium bg-stone-100 text-stone-700">
+                    {{ recipe.get_flavor_profile_display }}
+                </span>
+                {% for tag in recipe.dietary_tags.all %}
+                <span class="px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium bg-stone-100 text-stone-600">
+                    {{ tag.icon }} {{ tag.name }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <!-- Header & Tagline: Responsive Title Scale -->
+            <div>
+                {% if recipe.twi_name %}
+                <span class="text-[11px] sm:text-xs font-mono font-bold text-brand-600 uppercase tracking-widest block mb-1">
+                    {{ recipe.twi_name }}
+                </span>
+                {% endif %}
+                <h1 class="font-serif-title text-2xl sm:text-4xl font-bold text-stone-900 leading-tight">
+                    {{ recipe.title }}
+                </h1>
+                <p class="mt-1.5 sm:mt-2 text-sm sm:text-base text-stone-600 leading-relaxed font-medium">
+                    {{ recipe.tagline }}
+                </p>
+            </div>
+            {% else %}
+            <p class="text-sm sm:text-base text-stone-600 leading-relaxed font-medium">
+                {{ recipe.tagline }}
+            </p>
+            {% endif %}
+
+            <!-- Stat Row: Micro-cards on mobile to avoid 2x2 grid misalignment -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-2xl bg-stone-50 border border-stone-200/80">
+                <!-- Cost -->
+                <div class="bg-white/80 p-2.5 sm:p-0 sm:bg-transparent rounded-xl sm:rounded-none">
+                    <span class="text-[10px] sm:text-[11px] font-medium text-stone-500 uppercase tracking-wider block">Estimated Cost</span>
+                    <span class="text-base sm:text-lg font-bold font-mono text-brand-600 mt-0.5 block">
+                        GH₵ {{ recipe.effective_cost_per_serving|floatformat:2 }}
+                    </span>
+                    <span class="text-[10px] text-stone-400 block">per serving</span>
+                </div>
+
+                <!-- Time -->
+                <div class="bg-white/80 p-2.5 sm:p-0 sm:bg-transparent rounded-xl sm:rounded-none">
+                    <span class="text-[10px] sm:text-[11px] font-medium text-stone-500 uppercase tracking-wider block">Prep &amp; Cook</span>
+                    <span class="text-base sm:text-lg font-bold text-stone-900 mt-0.5 block">
+                        ⏱ {{ recipe.total_time_minutes }} mins
+                    </span>
+                    <span class="text-[10px] text-stone-400 block truncate">{{ recipe.prep_time_minutes }}m prep • {{ recipe.cook_time_minutes }}m cook</span>
+                </div>
+
+                <!-- Difficulty -->
+                <div class="bg-white/80 p-2.5 sm:p-0 sm:bg-transparent rounded-xl sm:rounded-none">
+                    <span class="text-[10px] sm:text-[11px] font-medium text-stone-500 uppercase tracking-wider block">Difficulty</span>
+                    <span class="text-xs sm:text-sm font-semibold text-stone-900 mt-0.5 block">
+                        {{ recipe.get_difficulty_display }}
+                    </span>
+                    <span class="text-[10px] text-stone-400 block truncate">Home kitchen</span>
+                </div>
+
+                <!-- Servings Scaler: Touch-friendly dropdown + total cost -->
+                <div class="bg-white/80 p-2.5 sm:p-0 sm:bg-transparent rounded-xl sm:rounded-none flex flex-col justify-between">
+                    <span class="text-[10px] sm:text-[11px] font-medium text-stone-500 uppercase tracking-wider block">Servings</span>
+                    <div class="mt-1 flex items-center justify-between gap-1 flex-wrap sm:flex-nowrap">
+                        <select onchange="window.location.href='?servings=' + this.value" class="w-full sm:w-auto text-xs font-semibold text-stone-800 bg-white border border-stone-200 rounded-lg px-2 py-1.5 sm:py-0.5 shadow-xs focus:outline-none focus:border-brand-600 cursor-pointer">
+                            <option value="1" {% if servings == 1 %}selected{% endif %}>1 Person</option>
+                            <option value="2" {% if servings == 2 %}selected{% endif %}>2 People</option>
+                            <option value="4" {% if servings == 4 %}selected{% endif %}>4 People</option>
+                            <option value="6" {% if servings == 6 %}selected{% endif %}>6 People</option>
+                        </select>
+                        <span class="text-[11px] text-brand-600 font-mono font-bold shrink-0">
+                            GH₵ {{ total_cost_ghs|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chef Eric Adjepong Cultural Narrative Box: Snug mobile padding -->
+            <div class="p-3.5 sm:p-5 rounded-2xl bg-brand-50/50 border border-brand-200/80">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-brand-700 uppercase tracking-wider mb-1">
+                    <span>🇬🇭 Cultural Story & Culinary Context</span>
+                </div>
+                <p class="font-serif text-stone-800 text-xs sm:text-sm leading-relaxed italic">
+                    "{{ recipe.cultural_story }}"
+                </p>
+                <span class="block not-italic font-semibold text-[11px] sm:text-xs text-stone-500 mt-1.5">
+                    — Chef Eric Adjepong, <em>Ghana to the World</em>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Segmented Tab Switcher (Only visible on mobile/tablet, hidden on desktop lg:hidden) -->
+    <div class="lg:hidden mb-6 no-print sticky top-16 z-30 bg-stone-50/95 backdrop-blur-md pt-2 pb-1">
+        <div class="grid grid-cols-2 p-1 bg-stone-200/80 rounded-2xl border border-stone-200 shadow-2xs">
+            <button 
+                type="button" 
+                id="tabBtnIngredients" 
+                onclick="switchMobileTab('ingredients')" 
+                class="py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-xs cursor-pointer"
+            >
+                <span>🛒 Ingredients</span>
+            </button>
+            <button 
+                type="button" 
+                id="tabBtnSteps" 
+                onclick="switchMobileTab('steps')" 
+                class="py-2.5 px-3 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 cursor-pointer"
+            >
+                <span>🍳 Cooking Steps ({{ recipe.steps.count }})</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Two-Column Layout on Desktop / Single Tab View on Mobile -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- Left Column: Ingredients Checklist (Tab 1 on mobile, 5-col column on desktop) -->
+        <div id="sectionIngredients" class="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-xs p-5 sm:p-6 lg:!block">
+            
+            <!-- Checklist Header -->
+            <div class="pb-4 border-b border-stone-100 flex items-center justify-between">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
+                    <span>🛒</span> Ingredients Checklist
+                </h2>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleAllIngredients(this)" class="text-[11px] font-semibold text-brand-600 hover:text-brand-700 transition cursor-pointer">
+                        Check All
+                    </button>
+                    <span class="text-stone-300">•</span>
+                    <span class="text-[11px] text-stone-500 font-medium">For {{ servings }} serving{{ servings|pluralize }}</span>
+                </div>
+            </div>
+
+            <!-- Ingredients Groups & Items -->
+            <div class="space-y-6 mt-4">
+                {% for group in recipe.ingredient_groups.all %}
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-brand-600 mb-2.5">
+                        {{ group.name }}
+                    </h3>
+                    <ul class="space-y-2.5">
+                        {% for ingredient in group.ingredients.all %}
+                        <li>
+                            <label class="flex items-start gap-2.5 text-xs sm:text-sm text-stone-700 cursor-pointer group select-none">
+                                <input type="checkbox" class="mt-0.5 rounded border-stone-300 text-brand-600 focus:ring-brand-500 transition cursor-pointer ingredient-cb">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="font-medium text-stone-900 group-hover:text-brand-600 transition">
+                                            {{ ingredient.quantity }} {{ ingredient.item_name }}
+                                        </span>
+                                        {% if ingredient.portion_cost_ghs > 0 %}
+                                        <span class="text-[11px] font-mono text-stone-500 font-medium whitespace-nowrap">
+                                            ~GH₵ {{ ingredient.portion_cost_ghs|floatformat:2 }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% if ingredient.substitution_note %}
+                                    <span class="text-[11px] text-stone-500 block mt-0.5 italic">
+                                        Note: {{ ingredient.substitution_note }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% empty %}
+                <p class="text-xs text-stone-500 italic">No ingredients listed.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Total Ingredients Cost Banner -->
+            <div class="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between text-xs font-medium text-stone-600">
+                <span class="text-stone-700 font-medium">Market Total:</span>
+                <span class="font-mono font-bold text-brand-600 text-base">
+                    GH₵ {{ total_cost_ghs|floatformat:2 }}
+                </span>
+            </div>
+
+            <!-- Mobile Quick Step Switcher Button -->
+            <div class="mt-5 pt-3 border-t border-stone-100 lg:hidden">
+                <button type="button" onclick="switchMobileTab('steps')" class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                    <span>Proceed to Cooking Steps ({{ recipe.steps.count }})</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column: Step-by-Step Cooking Guide (Tab 2 on mobile, 7-col column on desktop) -->
+        <div id="sectionSteps" class="lg:col-span-7 space-y-6 hidden lg:!block">
+            
+            <!-- Mobile Quick Ingredients Back Link -->
+            <div class="lg:hidden pb-1">
+                <button type="button" onclick="switchMobileTab('ingredients')" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>← Review Ingredients Checklist</span>
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between pb-2">
+                <div>
+                    <h2 class="text-base font-bold text-stone-900">
+                        Preparation & Cooking Steps
+                    </h2>
+                    <p class="text-xs text-stone-500 mt-0.5">
+                        Follow Chef Adjepong's exact techniques for authentic flavor
+                    </p>
+                </div>
+                <span class="text-xs font-mono text-stone-500 bg-stone-100 px-2.5 py-1 rounded-lg">
+                    {{ recipe.steps.count }} Steps
+                </span>
+            </div>
+
+            <div class="space-y-4">
+                {% for step in recipe.steps.all %}
+                <div class="p-5 rounded-2xl bg-white border border-stone-200 transition-all hover:border-brand-300 step-card">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-800 font-mono text-xs font-bold flex items-center justify-center">
+                                {{ step.step_number }}
+                            </span>
+                            {% if step.heading %}
+                            <h3 class="text-sm font-bold text-stone-900">
+                                {{ step.heading }}
+                            </h3>
+                            {% endif %}
+                        </div>
+
+                        {% if step.timer_minutes %}
+                        <button type="button" onclick="startTimer(this, {{ step.timer_minutes }})" class="timer-btn inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-mono font-semibold hover:bg-brand-100 transition">
+                            <span>⏱ {{ step.timer_minutes }} min timer</span>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-stone-700 leading-relaxed pl-8">
+                        {{ step.instruction }}
+                    </p>
+                </div>
+                {% empty %}
+                <p class="text-xs text-stone-500 italic">No preparation steps specified.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Finished Banner -->
+            <div class="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center gap-3">
+                <span class="text-2xl">🥣</span>
+                <div>
+                    <strong class="font-semibold block">Enjoy your breakfast!</strong>
+                    Serve warm and take a moment to savor Ghanaian morning heritage.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Related Recipes -->
+    {% if related_recipes %}
+    <div class="mt-16 pt-8 border-t border-stone-200 no-print">
+        <h3 class="text-base font-bold text-stone-900 mb-4">
+            You Might Also Like
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for rel in related_recipes %}
+            <a href="{% url 'recommender:recipe_detail' rel.slug %}" class="block p-4 rounded-2xl bg-white border border-stone-200 hover:border-brand-400 hover:shadow-xs transition group">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="font-mono text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">
+                        GH₵ {{ rel.effective_cost_per_serving|floatformat:2 }}
+                    </span>
+                    <span class="text-[11px] text-stone-500">⏱ {{ rel.total_time_minutes }}m</span>
+                </div>
+                <h4 class="font-semibold text-stone-900 text-sm group-hover:text-brand-600 transition">
+                    {{ rel.title }}
+                </h4>
+                <p class="text-xs text-stone-500 mt-1 line-clamp-1">
+                    {{ rel.tagline }}
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function startTimer(btn, minutes) {
+        if (btn.dataset.running === 'true') return;
+        btn.dataset.running = 'true';
+        let seconds = minutes * 60;
+        const origText = btn.innerHTML;
+        
+        const interval = setInterval(() => {
+            seconds--;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            btn.innerHTML = `⏱ ${mins}:${secs < 10 ? '0' : ''}${secs} remaining`;
+            btn.className = "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-600 text-white text-xs font-mono font-semibold";
+            
+            if (seconds <= 0) {
+                clearInterval(interval);
+                btn.innerHTML = `🔔 Timer Finished!`;
+                btn.className = "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-mono font-semibold animate-bounce";
+                btn.dataset.running = 'false';
+            }
+        }, 1000);
+    }
+
+    function toggleAllIngredients(btn) {
+        const checkboxes = document.querySelectorAll('.ingredient-cb');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+        btn.textContent = allChecked ? 'Check All' : 'Uncheck All';
+    }
+
+    function switchMobileTab(tab) {
+        const ingredientsSection = document.getElementById('sectionIngredients');
+        const stepsSection = document.getElementById('sectionSteps');
+        const tabBtnIngredients = document.getElementById('tabBtnIngredients');
+        const tabBtnSteps = document.getElementById('tabBtnSteps');
+
+        if (tab === 'ingredients') {
+            ingredientsSection.classList.remove('hidden');
+            stepsSection.classList.add('hidden');
+            tabBtnIngredients.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-xs cursor-pointer";
+            tabBtnSteps.className = "py-2.5 px-3 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 cursor-pointer";
+        } else {
+            ingredientsSection.classList.add('hidden');
+            stepsSection.classList.remove('hidden');
+            tabBtnSteps.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-stone-900 shadow-xs cursor-pointer";
+            tabBtnIngredients.className = "py-2.5 px-3 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 cursor-pointer";
+            // Smoothly scroll to the top of steps on mobile
+            stepsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+</script>
+{% endblock %}

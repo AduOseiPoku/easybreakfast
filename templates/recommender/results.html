@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Breakfast Recommendation — GH₵ {{ user_budget_ghs }} — Easy Eats{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+    <!-- Top Query Summary & Reset Link -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-stone-200">
+        <div>
+            <div class="inline-flex items-center gap-2 text-xs font-semibold text-brand-600 uppercase tracking-wider">
+                <span>Recommendations Generated</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold text-stone-900 mt-0.5">
+                Here is what you should eat this morning:
+            </h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-mono font-medium">
+                Budget: <strong class="text-brand-600">GH₵ {{ user_budget_ghs|floatformat:2 }}</strong> ({{ servings }} serving{{ servings|pluralize }})
+            </span>
+            <a href="{% url 'recommender:home' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-brand-600 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Adjust Budget
+            </a>
+        </div>
+    </div>
+
+    <!-- Recommendation Content Partial -->
+    {% include 'recommender/partials/results_partial.html' %}
+
+    <!-- Bottom Actions -->
+    <div class="mt-14 text-center">
+        <a href="{% url 'recommender:home' %}" class="inline-flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Try another budget or craving
+        </a>
+    </div>
+
+</div>
+{% endblock %}

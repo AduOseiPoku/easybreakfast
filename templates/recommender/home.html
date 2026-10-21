@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+
+{% block title %}Easy Eats — What Should I Eat for Breakfast? — Ghanaian Morning Meals by Budget & Time{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+    <!-- Hero Header -->
+    <div class="text-center mx-auto mb-8 sm:mb-10">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-50 border border-brand-200/70 text-brand-700 text-xs font-semibold mb-3.5 shadow-2xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span>
+            From Chef Eric Adjepong's <em>Ghana to the World</em>
+        </div>
+        <h1 class="font-serif-title text-3xl sm:text-5xl font-bold tracking-tight text-stone-900 leading-[1.15]">
+            What Should I Eat for Breakfast?
+        </h1>
+        <p class="mt-2.5 text-stone-600 text-sm sm:text-base leading-relaxed">
+            Enter your exact budget in Ghana Cedis (<span class="font-semibold text-brand-600">GH₵</span>) and morning prep time to discover your tailored meal.
+        </p>
+    </div>
+
+    <!-- The Interactive Morning Meal Planner Card -->
+    <div class="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-9 transition-all">
+        <form action="{% url 'recommender:recommend' %}" method="GET" class="space-y-7" id="breakfastForm">
+
+            <!-- 1. Dynamic Numeric Budget Input + Dual Synchronized Slider -->
+            <div>
+                <div class="flex items-center justify-between gap-1 mb-2">
+                    <label for="budget_ghs" class="text-xs font-semibold text-stone-900 flex items-center gap-1.5">
+                        <span class="text-brand-600 font-bold">1.</span> Your Available Budget
+                        <span class="text-[11px] font-normal text-stone-500">(GH₵)</span>
+                    </label>
+                    <div class="flex items-center gap-1.5 text-xs text-stone-600">
+                        <label for="servings" class="text-[11px] font-medium text-stone-500">Party:</label>
+                        <select name="servings" id="servings" class="text-xs font-semibold text-stone-800 bg-white border border-stone-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-brand-600 shadow-xs cursor-pointer">
+                            <option value="1" selected>1 Person</option>
+                            <option value="2">2 People</option>
+                            <option value="4">4 People</option>
+                            <option value="6">6 People</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Currency Numeric Input Field -->
+                <div class="relative rounded-2xl border-2 border-stone-200 focus-within:border-brand-600 focus-within:ring-3 focus-within:ring-brand-50 transition-all bg-stone-50/50">
+                    <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
+                        <span class="text-brand-600 font-bold text-xl sm:text-2xl font-mono">GH₵</span>
+                    </div>
+                    <input 
+                        type="number" 
+                        name="budget_ghs" 
+                        id="budget_ghs" 
+                        min="5" 
+                        max="200" 
+                        step="1" 
+                        value="40" 
+                        required
+                        class="block w-full pl-16 sm:pl-20 pr-4 py-3.5 sm:py-4 text-2xl sm:text-3xl font-bold font-mono text-stone-900 bg-transparent rounded-2xl focus:outline-none"
+                        placeholder="40"
+                        oninput="syncSlider(this.value)"
+                    >
+                </div>
+
+                <!-- Live Visual Range Slider -->
+                <div class="mt-3 px-1">
+                    <input 
+                        type="range" 
+                        id="budget_slider" 
+                        min="10" 
+                        max="150" 
+                        step="5" 
+                        value="40" 
+                        class="w-full accent-brand-600 cursor-pointer"
+                        oninput="syncNumeric(this.value)"
+                    >
+                    <div class="flex justify-between text-[10px] text-stone-600 font-mono mt-0.5">
+                        <span>GH₵ 10</span>
+                        <span>GH₵ 50</span>
+                        <span>GH₵ 100</span>
+                        <span>GH₵ 150+</span>
+                    </div>
+                </div>
+
+                <!-- Quick Increment Steppers -->
+                <div class="flex flex-wrap items-center gap-1.5 mt-3 text-xs">
+                    <span class="text-[11px] text-stone-600 mr-0.5">Quick presets:</span>
+                    <button type="button" onclick="adjustBudget(-10)" class="px-2.5 py-1 rounded-md border border-stone-200 bg-white hover:border-brand-500 hover:text-brand-600 text-stone-600 text-[11px] font-medium transition cursor-pointer">-10</button>
+                    <button type="button" onclick="adjustBudget(10)" class="px-2.5 py-1 rounded-md border border-stone-200 bg-white hover:border-brand-500 hover:text-brand-600 text-stone-600 text-[11px] font-medium transition cursor-pointer">+10</button>
+                    <button type="button" onclick="adjustBudget(25)" class="px-2.5 py-1 rounded-md border border-stone-200 bg-white hover:border-brand-500 hover:text-brand-600 text-stone-600 text-[11px] font-medium transition cursor-pointer">+25</button>
+                    <button type="button" onclick="setBudget(20)" class="px-2.5 py-1 rounded-md border border-stone-200 bg-white hover:border-brand-500 hover:text-brand-600 text-stone-600 text-[11px] font-medium transition cursor-pointer">GH₵ 20 (Quick Staple)</button>
+                    <button type="button" onclick="setBudget(85)" class="px-2.5 py-1 rounded-md border border-stone-200 bg-white hover:border-brand-500 hover:text-brand-600 text-stone-600 text-[11px] font-medium transition cursor-pointer">GH₵ 85 (Feast)</button>
+                </div>
+            </div>
+
+            <!-- 2. Available Preparation Time -->
+            <div>
+                <label class="block text-xs font-semibold text-stone-900 mb-2">
+                    <span class="text-brand-600 font-bold">2.</span> How much time do you have this morning?
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="max_time_minutes" value="15" class="peer sr-only">
+                        <div class="px-2.5 py-2.5 rounded-xl border border-stone-200 bg-white text-center peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            <span class="block text-xs font-semibold">⚡ 15 Mins</span>
+                            <span class="block text-[10px] text-stone-600 mt-0.5">Quick on-the-go</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="max_time_minutes" value="30" class="peer sr-only" checked>
+                        <div class="px-2.5 py-2.5 rounded-xl border border-stone-200 bg-white text-center peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            <span class="block text-xs font-semibold">⏱ 30 Mins</span>
+                            <span class="block text-[10px] text-stone-600 mt-0.5">Balanced morning</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="max_time_minutes" value="45" class="peer sr-only">
+                        <div class="px-2.5 py-2.5 rounded-xl border border-stone-200 bg-white text-center peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            <span class="block text-xs font-semibold">🍳 45 Mins</span>
+                            <span class="block text-[10px] text-stone-600 mt-0.5">Leisurely brunch</span>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="max_time_minutes" value="" class="peer sr-only">
+                        <div class="px-2.5 py-2.5 rounded-xl border border-stone-200 bg-white text-center peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            <span class="block text-xs font-semibold">✨ Any Time</span>
+                            <span class="block text-[10px] text-stone-600 mt-0.5">Show everything</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. Flavor & Craving Profile -->
+            <div>
+                <label class="block text-xs font-semibold text-stone-900 mb-2">
+                    <span class="text-brand-600 font-bold">3.</span> What are you craving?
+                </label>
+                <select name="flavor_preference" class="w-full text-xs font-medium text-stone-800 bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-600">
+                    <option value="ALL">Surprise Me (Any Craving)</option>
+                    <option value="SWEET_WARM">🍯 Warm & Sweet Porridge / Pancakes</option>
+                    <option value="SAVORY_SPICED">🌶️ Savory & Spiced (Waakye / Stew)</option>
+                    <option value="SWEET_SAVORY">🥞 Sweet & Savory (Eggs & Sugar Bread / Kelewele)</option>
+                    <option value="RICH_OPULENT">👑 Rich & Opulent (Scallop Benedict / Banana Grits)</option>
+                </select>
+            </div>
+
+            <!-- 4. Culinary Tradition Style -->
+            <div>
+                <label class="block text-xs font-semibold text-stone-900 mb-2">
+                    <span class="text-brand-600 font-bold">4.</span> Culinary Heritage Style
+                </label>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tradition_type" value="ALL" class="peer sr-only" checked>
+                        <span class="block text-center px-3 py-2 rounded-xl border border-stone-200 bg-white font-medium text-stone-700 peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white transition">
+                            All Traditions
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tradition_type" value="SANKOFA" class="peer sr-only">
+                        <span class="block text-center px-3 py-2 rounded-xl border border-stone-200 bg-white font-medium text-stone-700 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            🇬🇭 Sankofa Classic
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 5. Dietary Tags (Optional) -->
+            <div>
+                <label class="block text-xs font-semibold text-stone-900 mb-1.5">
+                    <span class="text-brand-600 font-bold">5.</span> Dietary Preferences <span class="text-[11px] font-normal text-stone-500">(Optional)</span>
+                </label>
+                <div class="flex flex-wrap gap-1.5">
+                    {% for tag in dietary_tags %}
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="dietary_tags" value="{{ tag.slug }}" class="peer sr-only">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-stone-200 bg-white text-[11px] font-medium text-stone-600 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition">
+                            <span>{{ tag.icon }}</span>
+                            <span>{{ tag.name }}</span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Big Primary Reveal Button -->
+            <div class="pt-3">
+                <button type="submit" id="submitBtn" class="w-full inline-flex items-center justify-center gap-2.5 bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-bold text-base py-4 px-8 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                    <span>Reveal My Morning Meal</span>
+                    <span class="text-xl">🍳</span>
+                </button>
+                <p class="text-center text-xs text-stone-500 mt-2 font-medium">
+                    Chef Eric Adjepong's curated Ghanaian recommendations
+                </p>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Banku Ta Porridge Stir Cooking Loader Animation Overlay -->
+    <div id="cookingLoader" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none" aria-hidden="true">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-stone-100 transform scale-95 transition-transform duration-300" id="cookingLoaderCard">
+            
+            <!-- Banku Ta Porridge Stir Animation Container -->
+            <div class="relative w-36 h-36 mx-auto flex items-center justify-center">
+                <!-- Steam Wisps Rising -->
+                <div class="absolute -top-3 left-10 w-4 h-8 animate-steam-1 pointer-events-none">
+                    <svg viewBox="0 0 20 40" fill="none" class="w-full h-full text-stone-300 stroke-current" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M10 35 C5 25, 15 15, 10 5" />
+                    </svg>
+                </div>
+                <div class="absolute -top-5 right-10 w-4 h-9 animate-steam-2 pointer-events-none">
+                    <svg viewBox="0 0 20 40" fill="none" class="w-full h-full text-stone-300 stroke-current" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M10 35 C15 25, 5 15, 10 5" />
+                    </svg>
+                </div>
+
+                <!-- Floating Roasted Peanut Flour / Cinnamon Dust -->
+                <div class="absolute top-2 left-12 w-2 h-2 rounded-full bg-amber-400 animate-dust-1 pointer-events-none"></div>
+                <div class="absolute top-0 right-14 w-1.5 h-1.5 rounded-full bg-amber-500 animate-dust-2 pointer-events-none"></div>
+                <div class="absolute top-4 right-10 w-2 h-2 rounded-full bg-orange-400 animate-dust-3 pointer-events-none"></div>
+
+                <!-- Pot and Banku Ta Composition -->
+                <div class="relative w-32 h-24">
+                    <!-- The Banku Ta (Wooden Spatula) Stirring into the pot -->
+                    <div class="absolute -top-4 left-7 w-12 h-20 animate-banku-ta z-20 pointer-events-none">
+                        <svg viewBox="0 0 50 90" fill="none" class="w-full h-full drop-shadow-md">
+                            <!-- Long Spatula Handle -->
+                            <rect x="22" y="2" width="6" height="52" rx="3" fill="#b45309" stroke="#78350f" stroke-width="0.8" />
+                            <line x1="25" y1="8" x2="25" y2="46" stroke="#92400e" stroke-width="0.8" stroke-linecap="round" />
+                            <!-- Flat Spatula Paddle (Banku Ta head) -->
+                            <path d="M14 50 C14 48, 36 48, 36 50 L38 80 C38 84, 12 84, 12 80 Z" fill="#d97706" stroke="#92400e" stroke-width="1" />
+                            <path d="M16 75 C16 72, 34 72, 34 75 L35 81 C35 83, 15 83, 15 81 Z" fill="#b45309" opacity="0.6" />
+                        </svg>
+                    </div>
+
+                    <!-- Earthenware / Cast Pot -->
+                    <svg viewBox="0 0 130 90" fill="none" class="w-full h-full drop-shadow-lg">
+                        <path d="M22 36 C10 36 10 50 22 50" stroke="#44403c" stroke-width="4.5" stroke-linecap="round" />
+                        <path d="M108 36 C120 36 120 50 108 50" stroke="#44403c" stroke-width="4.5" stroke-linecap="round" />
+                        <path d="M22 34 C22 68, 40 82, 65 82 C90 82, 108 68, 108 34 Z" fill="#292524" />
+                        <path d="M28 42 C30 65, 45 76, 65 76 C70 76, 75 75, 80 72" stroke="#44403c" stroke-width="2" stroke-linecap="round" />
+                        <ellipse cx="65" cy="34" rx="43" ry="13" fill="#44403c" stroke="#1c1917" stroke-width="1.5" />
+                        <ellipse cx="65" cy="34" rx="39" ry="10.5" fill="#1c1917" />
+                        <ellipse cx="65" cy="35" rx="36" ry="9" fill="url(#porridgeGrad)" />
+                        
+                        <g class="animate-porridge-ripple">
+                            <ellipse cx="65" cy="35" rx="22" ry="5.5" stroke="#fef3c7" stroke-width="1" stroke-dasharray="8 6" opacity="0.7" />
+                            <ellipse cx="65" cy="35" rx="12" ry="3" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="5 4" opacity="0.8" />
+                        </g>
+
+                        <circle cx="50" cy="35" r="2.5" fill="#fef08a" class="animate-bubble-1" />
+                        <circle cx="78" cy="34" r="2" fill="#fde047" class="animate-bubble-2" />
+
+                        <defs>
+                            <linearGradient id="porridgeGrad" x1="29" y1="35" x2="101" y2="35" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#d97706" />
+                                <stop offset="50%" stop-color="#f59e0b" />
+                                <stop offset="100%" stop-color="#b45309" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+
+                <!-- Soft Hearth Glow Beneath Pot -->
+                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 animate-flame">
+                    <span class="w-3 h-3 rounded-full bg-brand-500 blur-[1px]"></span>
+                    <span class="w-4 h-4 rounded-full bg-brand-600 blur-[0.5px]"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-400 blur-[1px]"></span>
+                </div>
+            </div>
+
+            <!-- Title & Dynamic Cooking Ticker -->
+            <h3 class="font-serif-title text-xl font-bold text-stone-900 mt-2">
+                Simmering Your Breakfast...
+            </h3>
+            <p id="cookingStatusText" class="text-xs text-stone-600 mt-1.5 h-5 font-medium transition-opacity duration-200">
+                Scanning Makola Market prices...
+            </p>
+
+            <!-- Animated Progress Bar -->
+            <div class="w-full bg-stone-100 rounded-full h-1.5 mt-5 overflow-hidden border border-stone-200/50">
+                <div id="loaderProgressBar" class="bg-gradient-to-r from-amber-500 to-brand-600 h-1.5 rounded-full transition-all duration-[1250ms] ease-out w-0"></div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-stone-100 flex items-center justify-center">
+                <span class="inline-flex items-center gap-1 text-[11px] font-mono text-stone-500">
+                    Target Budget: <strong class="text-brand-600 font-bold" id="loaderBudgetValue">GH₵ 40.00</strong>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Morning Inspiration Teaser Row -->
+    <div class="mt-14 pt-8 border-t border-stone-200">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-base font-bold text-stone-900">Featured Morning Staples</h2>
+                <p class="text-xs text-stone-500">Timeless Ghanaian morning favorites from the collection</p>
+            </div>
+            <a href="{% url 'recommender:all_recipes' %}" class="text-xs font-semibold text-brand-600 hover:text-brand-700 transition flex items-center gap-1">
+                View all {{ total_recipes_count }} recipes →
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            {% for recipe in recent_recipes %}
+            <a href="{% url 'recommender:recipe_detail' recipe.slug %}" class="group block p-4 rounded-2xl bg-white border border-stone-200 hover:border-brand-400 hover:shadow-xs transition">
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                    <span class="font-mono text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">
+                        GH₵ {{ recipe.effective_cost_per_serving|floatformat:2 }}
+                    </span>
+                    <span class="text-[11px] text-stone-500 flex items-center gap-1">
+                        ⏱ {{ recipe.total_time_minutes }}m
+                    </span>
+                </div>
+                <h3 class="font-medium text-stone-900 text-sm group-hover:text-brand-600 transition line-clamp-1">
+                    {{ recipe.title }}
+                </h3>
+                <p class="text-xs text-stone-500 mt-1 line-clamp-2">
+                    {{ recipe.tagline }}
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function syncSlider(val) {
+        const slider = document.getElementById('budget_slider');
+        if (slider) slider.value = val;
+    }
+
+    function syncNumeric(val) {
+        const numInput = document.getElementById('budget_ghs');
+        if (numInput) {
+            numInput.value = val;
+        }
+    }
+
+    function adjustBudget(delta) {
+        const input = document.getElementById('budget_ghs');
+        let current = parseFloat(input.value) || 0;
+        let updated = Math.max(5, current + delta);
+        input.value = updated;
+        syncSlider(updated);
+    }
+
+    function setBudget(amount) {
+        const input = document.getElementById('budget_ghs');
+        input.value = amount;
+        syncSlider(amount);
+    }
+
+    // Banku Ta Simmering Animation Controller
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('breakfastForm');
+        const loader = document.getElementById('cookingLoader');
+        const loaderCard = document.getElementById('cookingLoaderCard');
+        const statusText = document.getElementById('cookingStatusText');
+        const progressBar = document.getElementById('loaderProgressBar');
+        const budgetDisplay = document.getElementById('loaderBudgetValue');
+        let isSubmitting = false;
+
+        const cookingMessages = [
+            "🌽 Checking Makola Market ingredient prices...",
+            "🥄 Stirring porridge & spices in the earthenware pot...",
+            "⚖️ Balancing your Cedis budget & surplus...",
+            "🇬🇭 Plating your authentic Ghanaian morning meal..."
+        ];
+
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) return;
+            e.preventDefault();
+            isSubmitting = true;
+
+            const budgetVal = parseFloat(document.getElementById('budget_ghs').value) || 40;
+            budgetDisplay.textContent = "GH₵ " + budgetVal.toFixed(2);
+
+            loader.classList.remove('opacity-0', 'pointer-events-none');
+            loader.classList.add('opacity-100');
+            loaderCard.classList.remove('scale-95');
+            loaderCard.classList.add('scale-100');
+
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 50);
+
+            let msgIndex = 0;
+            const messageInterval = setInterval(() => {
+                msgIndex++;
+                if (msgIndex < cookingMessages.length) {
+                    statusText.style.opacity = '0';
+                    setTimeout(() => {
+                        statusText.textContent = cookingMessages[msgIndex];
+                        statusText.style.opacity = '1';
+                    }, 140);
+                }
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(messageInterval);
+                form.submit();
+            }, 1250);
+        });
+
+        window.addEventListener('pageshow', function() {
+            isSubmitting = false;
+            loader.classList.add('opacity-0', 'pointer-events-none');
+            loader.classList.remove('opacity-100');
+            loaderCard.classList.add('scale-95');
+            loaderCard.classList.remove('scale-100');
+            progressBar.style.width = '0%';
+            statusText.textContent = cookingMessages[0];
+        });
+    });
+</script>
+{% endblock %}

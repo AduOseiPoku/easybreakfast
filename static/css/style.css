@@ -1,0 +1,147 @@
+/* EasyBreakfast Minimalist Custom Styling */
+
+/* Smooth transitions and touch handling for web and WebView */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    touch-action: manipulation;
+    overscroll-behavior-y: contain;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Checkbox strike-through animation for ingredients */
+input[type="checkbox"]:checked + div span.font-medium,
+input[type="checkbox"]:checked ~ span {
+    text-decoration: line-through;
+    color: #a8a29e;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #fafaf9;
+}
+::-webkit-scrollbar-thumb {
+    background: #d6d3d1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a29e;
+}
+
+/* HTMX Transition animations */
+.htmx-indicator {
+    display: none;
+    opacity: 0;
+    transition: opacity 150ms ease-in-out;
+}
+.htmx-request .htmx-indicator {
+    display: inline-flex;
+    opacity: 1;
+}
+.htmx-request.htmx-indicator {
+    display: inline-flex;
+    opacity: 1;
+}
+
+.fade-in {
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0.6;
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Print Styles for Kitchen Mode */
+@media print {
+    .no-print, header, footer, button, .no-print-area {
+        display: none !important;
+    }
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-2xs {
+        box-shadow: none !important;
+    }
+    .border {
+        border-color: #e5e7eb !important;
+    }
+}
+
+/* Banku Ta Porridge Stir Animation Keyframes */
+@keyframes banku-ta-stir {
+    0% { transform: rotate(12deg) translate(-8px, -2px); }
+    25% { transform: rotate(24deg) translate(2px, 3px); }
+    50% { transform: rotate(10deg) translate(10px, -1px); }
+    75% { transform: rotate(-2deg) translate(0px, -6px); }
+    100% { transform: rotate(12deg) translate(-8px, -2px); }
+}
+
+@keyframes porridge-ripple {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.04, 0.98) rotate(180deg); }
+}
+
+@keyframes bubble-pop-1 {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 0.9; }
+    75% { transform: scale(1.4); opacity: 0.4; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes bubble-pop-2 {
+    0% { transform: scale(0); opacity: 0; }
+    40% { transform: scale(1.1); opacity: 0.85; }
+    70% { transform: scale(1.3); opacity: 0.3; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes peanut-dust-fall {
+    0% { transform: translateY(-16px) rotate(0deg); opacity: 0; }
+    30% { opacity: 0.8; }
+    70% { opacity: 0.9; }
+    100% { transform: translateY(18px) rotate(120deg); opacity: 0; }
+}
+
+.animate-banku-ta {
+    animation: banku-ta-stir 1.5s ease-in-out infinite;
+    transform-origin: 50% 20%;
+}
+
+.animate-porridge-ripple {
+    animation: porridge-ripple 3s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.animate-bubble-1 {
+    animation: bubble-pop-1 1.4s ease-out infinite;
+}
+
+.animate-bubble-2 {
+    animation: bubble-pop-2 1.7s ease-out infinite 0.5s;
+}
+
+.animate-dust-1 {
+    animation: peanut-dust-fall 1.8s ease-in infinite;
+}
+
+.animate-dust-2 {
+    animation: peanut-dust-fall 2.1s ease-in infinite 0.6s;
+}
+
+.animate-dust-3 {
+    animation: peanut-dust-fall 1.6s ease-in infinite 1.1s;
+}
