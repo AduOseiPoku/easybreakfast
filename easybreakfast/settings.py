@@ -20,8 +20,12 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '*').split(',') if host.strip()]
-if 'testserver' not in ALLOWED_HOSTS:
+raw_allowed_hosts = os.getenv('ALLOWED_HOSTS', '*')
+if '*' in [h.strip() for h in raw_allowed_hosts.split(',')]:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [h.strip() for h in raw_allowed_hosts.split(',') if h.strip()]
+if 'testserver' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('testserver')
 
 # Dokploy / Traefik reverse proxy & SSL settings
